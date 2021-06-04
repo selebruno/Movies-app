@@ -1,0 +1,13 @@
+.cnt {
+    padding-top: 10px;
+}
+
+.div{
+    color: aliceblue;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-size: 30px;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    margin-top: 30px;
+}
