@@ -1,85 +1,145 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React from "react";
+import { useState } from "react";
 import { Link } from 'react-router-dom';
 import { addMovieFavorite, getMovies } from '../../actions/index.js'
-import './Buscador.css';
+import { useSelector, useDispatch } from "react-redux";
+import { styled, alpha } from '@mui/material/styles';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import InputBase from '@mui/material/InputBase';
+import SearchIcon from '@mui/icons-material/Search';
+import ImageList from '@mui/material/ImageList';
+import ImageListItem from '@mui/material/ImageListItem';
+import Button from '@mui/material/Button';
+import { MuiThemeProvider, createTheme } from '@material-ui/core/styles';
+import { margin } from "@mui/system";
 
-export class Buscador extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
+ 
+const myTheme = createTheme({ 
+  palette: {
+    secondary: {
+      main: '#2596be'
+    }
+  }
+});
+
+const Search = styled('div')(({ theme }) => ({ 
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
+  },
+  marginLeft: 0,
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(1),
+    width: 'auto',
+  },
+}));
+
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  pointerEvents: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: 'inherit',
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      width: '12ch',
+      '&:focus': {
+        width: '20ch',
+      },
+    },
+  },
+}));
+
+
+ 
+  
+
+export function Buscador() {
+    const [state,setState] = useState ({
       title: ""
-    };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    })
+   
+
+  const movies = useSelector(state => state.moviesLoaded)
+  const dispatch = useDispatch()
+
+  function handleChange(e) {
+    setState({ title: e.target.value });
   }
 
-  handleChange(e) {
-    this.setState({ title: e.target.value });
-  }
-
-  handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
-    this.props.getMovies(this.state.title);
+    dispatch(getMovies(state.title));
   }
 
-  render() {
-    const { title } = this.state;
+    const { title } =state.title;
     return (
-      <div className='all'>
-        <form className="form-container" onSubmit={this.handleSubmit}>
-          <div>
-            <input
-            placeholder='Pelicula...'
+      <>
+       <MuiThemeProvider theme={myTheme}>
+      <Box sx={{ flexGrow: 1 }}>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+          >
+            Movies App
+          </Typography>  
+          <Search>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <StyledInputBase
               type="text"
               id="title"
-              autoComplete="off"
+              autoComplete="off" 
               value={title}
-              onChange={this.handleChange}
+              onChange={handleChange}
+              placeholder="Search…"
+              inputProps={{ 'aria-label': 'search' }}
             />
-          </div>
-          <button type="submit">BUSCAR</button>
-        </form>
-        <ul className='allMovies'>
-         {
-           this.props.movies && this.props.movies.map(movie => (
-             <div className='each' key={movie.imdbID}>
-              <Link to={`/movie/${movie.imdbID}`}>
-                <span>{movie.Title}</span>
-                <img src={movie.Poster}/>
-              </Link>
-              <button onClick={() => this.props.addMovieFavorite(movie)}>FAV</button>
-             </div>
-           ))
-         }
-        </ul>
-      </div>
-    );
-  }
+          </Search>
+            <Button sx={{m: "0.5rem"}} color="inherit" variant="outlined" type="submit" onClick={handleSubmit}>BUSCAR</Button>
+        </Toolbar>
+      </AppBar>
+    </Box>
+    <ImageList sx={{ width: "90%", height: "100%", mx: "7.5rem" }}  cols={3} rowHeight={500}>
+     {
+       movies && movies.map(movie => (
+         <ImageListItem  key={movie.imdbID}>
+          <Link to={`/movie/${movie.imdbID}`}> 
+            <img src={movie.Poster} style={{height: '25rem', width:"18rem"}} loading="lazy"/>
+          </Link>
+          <Button variant="contained" style={{width: '18rem', marginTop:"0.1rem"}} onClick={() => dispatch(addMovieFavorite(movie))}>FAV</Button>
+         </ImageListItem>
+       ))
+     }
+    </ImageList>
+    </MuiThemeProvider>
+    </>
+  );
 }
+     
+      
+        
 
-// Prop
-//
-// {
-//   movies: store.getState().moviesLoaded,
-//   addMovieFavorite: (movie) => store.dispatch({type: "ADD_MOVIE_FAVORITE", payload: movie),
-//   getMovies: (title) => store.dispatch({type: "GET_MOVIES", payload: objServer})
-// }
 
-function mapStateToProps(state) {
-  return {
-    movies: state.moviesLoaded
-  };
-}
-
-function mapDispatchToProps(dispatch) {
-  return {
-    addMovieFavorite: movie => dispatch(addMovieFavorite(movie)),
-    getMovies: title => dispatch(getMovies(title))
-  };
-}
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Buscador);
+export default Buscador;
